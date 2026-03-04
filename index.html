@@ -1,101 +1,5 @@
-<!DOCTYPE html>
-<html>
-<head>
-
-<title>Help Maiku Restock Eggs</title>
-
-<style>
-
-body{
-margin:0;
-height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
-background-image:url("MaikuAtHome.png");
-background-size:cover;
-background-position:center;
-font-family:Arial;
-color:white;
-}
-
-#storyBox{
-background:rgba(0,0,0,0.65);
-padding:30px;
-border-radius:20px;
-width:650px;
-text-align:center;
-font-size:22px;
-}
-
-#choices{
-margin-top:30px;
-display:none;
-}
-
-.choiceBtn{
-width:120px;
-cursor:pointer;
-margin:10px;
-}
-
-/* start overlay */
-
-#startScreen{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:black;
-display:flex;
-justify-content:center;
-align-items:center;
-}
-
-#startBtn{
-padding:15px 30px;
-font-size:20px;
-border-radius:15px;
-border:none;
-cursor:pointer;
-}
-
-</style>
-
-</head>
-
-<body>
-
-<div id="startScreen">
-
-<button id="startBtn">Start Mission</button>
-
-</div>
-
-
-<div id="storyBox">
-
-<div id="text"></div>
-
-<div id="choices">
-
-<img src="Yes.png" id="yes" class="choiceBtn">
-<img src="No.png" id="no" class="choiceBtn">
-
-</div>
-
-</div>
-
-
-<audio id="ding" src="Ding.mp3"></audio>
-<audio id="womp" src="Womp Womp.mp3"></audio>
-
-
 <script>
-
-const story =
-
+  const story =
 `Maiku-san was chilling at home...
 
 Then he got a notification.
@@ -108,70 +12,48 @@ He ran out of eggs.
 
 So he must go on a mission to restock eggs.
 
-Will you help him?`
+Will you help him?`;
 
+  let i = 0;
+  const speed = 35;
+  const textElement = document.getElementById("text");
+  const ding = document.getElementById("ding");
+  const womp = document.getElementById("womp");
 
-let i = 0
+  // Play ding once right after the word "notification." finishes typing
+  const dingTrigger = "notification.";
+  const dingIndex = story.indexOf(dingTrigger) + dingTrigger.length - 1; // last char index of notification.
+  let dingPlayed = false;
 
-let speed = 35
+  function typeWriter(){
+    if(i < story.length){
+      textElement.innerHTML += story.charAt(i);
 
-let textElement = document.getElementById("text")
+      if(!dingPlayed && i === dingIndex){
+        dingPlayed = true;
+        ding.currentTime = 0;
+        ding.play().catch(()=>{});
+      }
 
-let dingPlayed = false
+      i++;
+      setTimeout(typeWriter, speed);
+    } else {
+      document.getElementById("choices").style.display = "block";
+    }
+  }
 
+  document.getElementById("startBtn").onclick = function(){
+    document.getElementById("startScreen").style.display = "none";
+    typeWriter();
+  }
 
-function typeWriter(){
+  document.getElementById("no").onclick = function(){
+    womp.currentTime = 0;
+    womp.play().catch(()=>{});
+    textElement.innerHTML += "<br><br>Womp womp... Mission failed.";
+  }
 
-if(i < story.length){
-
-textElement.innerHTML += story.charAt(i)
-
-if(story.substring(i,i+12) == "notification."){
-
-document.getElementById("ding").play()
-
-}
-
-i++
-
-setTimeout(typeWriter,speed)
-
-}
-
-else{
-
-document.getElementById("choices").style.display="block"
-
-}
-
-}
-
-
-document.getElementById("startBtn").onclick=function(){
-
-document.getElementById("startScreen").style.display="none"
-
-typeWriter()
-
-}
-
-
-document.getElementById("no").onclick=function(){
-
-document.getElementById("womp").play()
-
-textElement.innerHTML += "<br><br>Womp womp... Mission failed."
-
-}
-
-
-document.getElementById("yes").onclick=function(){
-
-window.location.href="stage1.html"
-
-}
-
+  document.getElementById("yes").onclick = function(){
+    window.location.href = "stage1.html";
+  }
 </script>
-
-</body>
-</html>
