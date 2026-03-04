@@ -15,8 +15,11 @@
 
     /* Start overlay so audio is allowed */
     #startOverlay{
-      position:fixed;inset:0;z-index:50;
-      display:grid;place-items:center;
+      position:fixed;
+      inset:0;
+      z-index:50;
+      display:grid;
+      place-items:center;
       background:rgba(0,0,0,0.70);
       padding:18px;
     }
@@ -25,12 +28,27 @@
       background:rgba(10,10,14,0.82);
       border:1px solid rgba(255,255,255,0.14);
       border-radius:18px;
-      padding:18px;
+      padding:24px;
       text-align:center;
       backdrop-filter: blur(10px);
+      box-shadow:0 18px 50px rgba(0,0,0,0.45);
     }
-    #startCard img{height:70px; image-rendering:pixelated}
-    #startCard p{margin:10px 0 14px;opacity:.9}
+
+    /* BIG START IMAGE */
+    #startCard img{
+      width:260px;
+      height:auto;
+      display:block;
+      margin:0 auto 16px auto;
+      image-rendering:auto;
+    }
+
+    #startCard p{
+      margin:10px 0 14px;
+      opacity:.9;
+      font-size:16px;
+      line-height:1.35;
+    }
     #startBtn{
       border:1px solid rgba(255,255,255,0.18);
       background:rgba(255,255,255,0.10);
@@ -38,12 +56,14 @@
       padding:10px 14px;
       border-radius:14px;
       cursor:pointer;
+      font-size:15px;
     }
     #startBtn:hover{background:rgba(255,255,255,0.14)}
 
     /* Layout: map on top, HUD below */
     .wrap{
-      position:fixed; inset:0;
+      position:fixed;
+      inset:0;
       display:grid;
       place-items:center;
       padding:14px;
@@ -68,10 +88,13 @@
       background:#111;
     }
     .map img.bg{
-      position:absolute; inset:0;
-      width:100%; height:100%;
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
       object-fit:cover;
-      user-select:none; pointer-events:none;
+      user-select:none;
+      pointer-events:none;
     }
 
     /* Maiku character */
@@ -95,8 +118,12 @@
       box-shadow:0 12px 30px rgba(0,0,0,0.35);
     }
     .hudTop{
-      display:flex; justify-content:space-between; align-items:center; gap:10px;
-      font-size:13px; opacity:0.95;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      font-size:13px;
+      opacity:0.95;
     }
     .pill{
       padding:6px 10px;
@@ -105,7 +132,12 @@
       border:1px solid rgba(255,255,255,0.12);
       white-space:nowrap;
     }
-    #msg{margin-top:8px; font-size:14px; opacity:0.95; text-align:left}
+    #msg{
+      margin-top:8px;
+      font-size:14px;
+      opacity:0.95;
+      text-align:left;
+    }
 
     /* Egg choices row */
     #choices{
@@ -131,8 +163,10 @@
 
     /* Result modal */
     #modal{
-      position:fixed; inset:0;
-      display:none; place-items:center;
+      position:fixed;
+      inset:0;
+      display:none;
+      place-items:center;
       background:rgba(0,0,0,0.65);
       z-index:40;
       padding:18px;
@@ -145,6 +179,7 @@
       padding:14px;
       text-align:center;
       backdrop-filter: blur(10px);
+      box-shadow:0 18px 50px rgba(0,0,0,0.45);
     }
     #modalCard img{
       width:min(320px, 70vw);
@@ -211,8 +246,7 @@
   <audio id="win"  src="Win.mp3" preload="auto"></audio>
 
   <script>
-    // Waypoints (percent positions) matching your X path:
-    // start bottom-left → right middle → left middle → end at eggs
+    // Waypoints: start bottom-left → right middle → left middle → end at eggs
     const WAYPOINTS = [
       { x: 18, y: 86 }, // start
       { x: 72, y: 65 }, // right-middle
@@ -220,7 +254,7 @@
       { x: 78, y: 18 }, // egg end
     ];
 
-    // Stages: number of egg choices per stage (2, 3, 4)
+    // Stages: number of egg choices (2, 3, 4)
     const STAGES = [
       { choices: 2 },
       { choices: 3 },
@@ -245,16 +279,16 @@
     const womp = document.getElementById("womp");
     const win  = document.getElementById("win");
 
-    // Requested volume
+    // Requested background volume
     bgm.volume = 0.15;
 
-    const IMG_EGG = "Egg.png";
-    const IMG_BAD = "Egg%20Bad.png";
+    const IMG_EGG  = "Egg.png";
+    const IMG_BAD  = "Egg%20Bad.png";
     const IMG_GOOD = "EggGood.png";
 
     let stageIndex = 0;    // 0..2
     let waypointIndex = 0; // 0..3
-    let goodIndex = 0;     // which egg is correct this stage
+    let goodIndex = 0;     // correct egg slot
     let isFinalComplete = false;
 
     function playSafe(a){
@@ -290,10 +324,7 @@
     function startStage(){
       const s = STAGES[stageIndex];
       stagePill.textContent = `Stage: ${stageIndex+1} / ${STAGES.length}`;
-
-      // pick a random "good" egg slot
       goodIndex = Math.floor(Math.random() * s.choices);
-
       msgEl.textContent = `Stage ${stageIndex+1}: Choose 1 of ${s.choices} eggs…`;
       buildEggButtons(s.choices);
     }
@@ -305,18 +336,15 @@
       modal.style.display = "grid";
     }
 
-    function hideModal(){
-      modal.style.display = "none";
-    }
+    function hideModal(){ modal.style.display = "none"; }
 
     function handleChoice(chosen){
-      // Pause background so sfx is clear
+      // Pause bgm so sound effects are clear
       pauseBgmForSfx();
 
       if(chosen === goodIndex){
         playSafe(tada);
         showModal("Correct! Maiku pops out! ✅", IMG_GOOD, (stageIndex < 2) ? "Next stage" : "Finish");
-
         modalBtn.onclick = () => {
           hideModal();
           proceedAfterWin();
@@ -324,10 +352,8 @@
       } else {
         playSafe(womp);
         showModal("Wrong egg… it’s empty 😭", IMG_BAD, "Try again");
-
         modalBtn.onclick = () => {
           hideModal();
-          // resume bgm before replaying stage
           resumeBgmIfAllowed();
           startStage();
         };
@@ -335,7 +361,7 @@
     }
 
     function proceedAfterWin(){
-      // Move Maiku to next waypoint
+      // Move Maiku forward
       if(waypointIndex < WAYPOINTS.length - 1){
         waypointIndex++;
         setMaikuAtWaypoint(waypointIndex);
@@ -343,21 +369,18 @@
 
       if(stageIndex < STAGES.length - 1){
         stageIndex++;
-        // resume BGM after the success moment
         setTimeout(() => {
           resumeBgmIfAllowed();
           startStage();
         }, 900);
       } else {
-        // final complete
+        // Final complete
         isFinalComplete = true;
         choicesEl.innerHTML = "";
         msgEl.textContent = "Thank you for helping Maiku do the shopping! 🥚✨";
 
-        // make sure Maiku ends at egg end, then stop bgm + play win
         setTimeout(() => {
           setMaikuAtWaypoint(WAYPOINTS.length - 1);
-
           try { bgm.pause(); bgm.currentTime = 0; } catch(e){}
           playSafe(win);
 
@@ -367,7 +390,7 @@
       }
     }
 
-    // Start button: enable audio & start game
+    // Start
     startBtn.addEventListener("click", () => {
       startOverlay.style.display = "none";
       playSafe(bgm);
