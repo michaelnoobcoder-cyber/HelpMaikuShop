@@ -9,7 +9,7 @@
     body{
       background:#0b0b10;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color: #fff;
+      color:#fff;
       overflow:hidden;
     }
 
@@ -18,6 +18,7 @@
       position:fixed;inset:0;z-index:50;
       display:grid;place-items:center;
       background:rgba(0,0,0,0.70);
+      padding:18px;
     }
     #startCard{
       width:min(520px,92vw);
@@ -40,15 +41,25 @@
     }
     #startBtn:hover{background:rgba(255,255,255,0.14)}
 
-    /* Map container */
+    /* Layout: map on top, HUD below */
     .wrap{
       position:fixed; inset:0;
-      display:grid; place-items:center;
+      display:grid;
+      place-items:center;
       padding:14px;
     }
+    .stack{
+      width:min(520px, 96vw);
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      align-items:stretch;
+    }
+
+    /* Map container */
     .map{
       position:relative;
-      width:min(520px, 96vw);
+      width:100%;
       aspect-ratio: 3 / 4; /* tall map */
       border-radius:18px;
       overflow:hidden;
@@ -71,16 +82,17 @@
       transition: left 900ms ease, top 900ms ease;
       user-select:none;
       filter: drop-shadow(0 10px 18px rgba(0,0,0,0.35));
+      pointer-events:none;
     }
 
-    /* UI panel */
+    /* HUD below map */
     .hud{
-      position:absolute; left:10px; right:10px; bottom:10px;
       background:rgba(10,10,14,0.70);
       border:1px solid rgba(255,255,255,0.14);
       border-radius:16px;
       padding:10px 10px 12px;
       backdrop-filter: blur(8px);
+      box-shadow:0 12px 30px rgba(0,0,0,0.35);
     }
     .hudTop{
       display:flex; justify-content:space-between; align-items:center; gap:10px;
@@ -93,7 +105,7 @@
       border:1px solid rgba(255,255,255,0.12);
       white-space:nowrap;
     }
-    #msg{margin-top:8px; font-size:14px; opacity:0.95}
+    #msg{margin-top:8px; font-size:14px; opacity:0.95; text-align:left}
 
     /* Egg choices row */
     #choices{
@@ -108,8 +120,9 @@
       background:transparent;
       cursor:pointer;
       padding:0;
-      transition: transform .08s ease;
+      transition: transform .08s ease, filter .08s ease;
     }
+    .eggBtn:hover{ filter: brightness(1.05); }
     .eggBtn:active{transform:translateY(1px)}
     .eggBtn img{
       width:58px;
@@ -165,9 +178,11 @@
   </div>
 
   <div class="wrap">
-    <div class="map" id="map">
-      <img class="bg" src="Map.png" alt="Map">
-      <img id="maiku" src="MaikuShopping.png" alt="Maiku">
+    <div class="stack">
+      <div class="map" id="map">
+        <img class="bg" src="Map.png" alt="Map">
+        <img id="maiku" src="MaikuShopping.png" alt="Maiku">
+      </div>
 
       <div class="hud">
         <div class="hudTop">
@@ -196,7 +211,7 @@
   <audio id="win"  src="Win.mp3" preload="auto"></audio>
 
   <script>
-    // Waypoints (percent positions) matching your red X path:
+    // Waypoints (percent positions) matching your X path:
     // start bottom-left → right middle → left middle → end at eggs
     const WAYPOINTS = [
       { x: 18, y: 86 }, // start
@@ -230,6 +245,9 @@
     const womp = document.getElementById("womp");
     const win  = document.getElementById("win");
 
+    // Requested volume
+    bgm.volume = 0.15;
+
     const IMG_EGG = "Egg.png";
     const IMG_BAD = "Egg%20Bad.png";
     const IMG_GOOD = "EggGood.png";
@@ -237,9 +255,19 @@
     let stageIndex = 0;    // 0..2
     let waypointIndex = 0; // 0..3
     let goodIndex = 0;     // which egg is correct this stage
+    let isFinalComplete = false;
 
     function playSafe(a){
       try { a.currentTime = 0; a.play().catch(()=>{}); } catch(e){}
+    }
+
+    function pauseBgmForSfx(){
+      try { bgm.pause(); } catch(e){}
+    }
+
+    function resumeBgmIfAllowed(){
+      if(isFinalComplete) return;
+      try { bgm.play().catch(()=>{}); } catch(e){}
     }
 
     function setMaikuAtWaypoint(idx){
@@ -282,58 +310,72 @@
     }
 
     function handleChoice(chosen){
+      // Pause background so sfx is clear
+      pauseBgmForSfx();
+
       if(chosen === goodIndex){
-        // success
         playSafe(tada);
         showModal("Correct! Maiku pops out! ✅", IMG_GOOD, (stageIndex < 2) ? "Next stage" : "Finish");
+
         modalBtn.onclick = () => {
           hideModal();
           proceedAfterWin();
         };
       } else {
-        // fail (stay same stage, retry)
         playSafe(womp);
         showModal("Wrong egg… it’s empty 😭", IMG_BAD, "Try again");
+
         modalBtn.onclick = () => {
           hideModal();
-          // rebuild stage with same number of eggs but new random good slot
+          // resume bgm before replaying stage
+          resumeBgmIfAllowed();
           startStage();
         };
       }
     }
 
     function proceedAfterWin(){
-      // Move Maiku to next waypoint (3 moves before egg end)
+      // Move Maiku to next waypoint
       if(waypointIndex < WAYPOINTS.length - 1){
         waypointIndex++;
         setMaikuAtWaypoint(waypointIndex);
       }
 
-      // Advance stage or finish
       if(stageIndex < STAGES.length - 1){
         stageIndex++;
-        // wait a bit so movement feels like progress
-        setTimeout(startStage, 900);
+        // resume BGM after the success moment
+        setTimeout(() => {
+          resumeBgmIfAllowed();
+          startStage();
+        }, 900);
       } else {
-        // final success -> end message + win sound
-        // ensure Maiku is at the egg end (last waypoint)
+        // final complete
+        isFinalComplete = true;
+        choicesEl.innerHTML = "";
+        msgEl.textContent = "Thank you for helping Maiku do the shopping! 🥚✨";
+
+        // make sure Maiku ends at egg end, then stop bgm + play win
         setTimeout(() => {
           setMaikuAtWaypoint(WAYPOINTS.length - 1);
-          msgEl.textContent = "Thank you for helping Maiku do the shopping! 🥚✨";
-          choicesEl.innerHTML = "";
+
+          try { bgm.pause(); bgm.currentTime = 0; } catch(e){}
           playSafe(win);
+
           showModal("Thank you for helping Maiku do the shopping! 🥚✨", IMG_GOOD, "Back to start");
           modalBtn.onclick = () => window.location.href = "index.html";
         }, 900);
       }
     }
 
-    // Start button: enables looping background music
+    // Start button: enable audio & start game
     startBtn.addEventListener("click", () => {
       startOverlay.style.display = "none";
       playSafe(bgm);
+
       waypointIndex = 0;
       stageIndex = 0;
+      isFinalComplete = false;
+
       setMaikuAtWaypoint(0);
       startStage();
     });
