@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Help Maiku Restock Eggs</title>
+
+<style>
+
+body{
+margin:0;
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background-image:url("MaikuAtHome.png");
+background-size:cover;
+background-position:center;
+font-family:Arial;
+color:white;
+}
+
+#storyBox{
+background:rgba(0,0,0,0.6);
+padding:30px;
+border-radius:20px;
+width:600px;
+text-align:center;
+font-size:22px;
+}
+
+#choices{
+margin-top:30px;
+display:none;
+}
+
+.choiceBtn{
+width:120px;
+cursor:pointer;
+margin:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div id="storyBox">
+
+<div id="text"></div>
+
+<div id="choices">
+
+<img src="Yes.png" id="yes" class="choiceBtn">
+<img src="No.png" id="no" class="choiceBtn">
+
+</div>
+
+</div>
+
+<audio id="ding" src="Ding.mp3"></audio>
+<audio id="womp" src="Womp Womp.mp3"></audio>
+
+<script>
+
+let story = [
+
+"Maiku-san was chilling at home...",
+"",
+"Then he got a notification.",
+"",
+"*ding*",
+"",
+"He saw that Mira-chan was eating egg for dinner.",
+"",
+"That made him realise...",
+"",
+"He ran out of eggs.",
+"",
+"So he must go on a mission to restock eggs.",
+"",
+"Will you help him?"
+
+]
+
+let i=0
+let textElement=document.getElementById("text")
+let ding=document.getElementById("ding")
+
+function typeStory(){
+
+if(i<story.length){
+
+let line=story[i]
+
+if(line=="*ding*"){
+
+ding.play()
+
+textElement.innerHTML+="🔔<br><br>"
+
+}else{
+
+textElement.innerHTML+=line+"<br><br>"
+
+}
+
+i++
+
+setTimeout(typeStory,800)
+
+}else{
+
+document.getElementById("choices").style.display="block"
+
+}
+
+}
+
+typeStory()
+
+document.getElementById("no").onclick=function(){
+
+document.getElementById("womp").play()
+
+textElement.innerHTML+="<br>Womp womp... Mission failed."
+
+}
+
+document.getElementById("yes").onclick=function(){
+
+window.location.href="stage1.html"
+
+}
+
+</script>
+
+</body>
+</html>
