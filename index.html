@@ -20,10 +20,10 @@ color:white;
 }
 
 #storyBox{
-background:rgba(0,0,0,0.6);
+background:rgba(0,0,0,0.65);
 padding:30px;
 border-radius:20px;
-width:600px;
+width:650px;
 text-align:center;
 font-size:22px;
 }
@@ -39,11 +39,40 @@ cursor:pointer;
 margin:10px;
 }
 
+/* start overlay */
+
+#startScreen{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:black;
+display:flex;
+justify-content:center;
+align-items:center;
+}
+
+#startBtn{
+padding:15px 30px;
+font-size:20px;
+border-radius:15px;
+border:none;
+cursor:pointer;
+}
+
 </style>
 
 </head>
 
 <body>
+
+<div id="startScreen">
+
+<button id="startBtn">Start Mission</button>
+
+</div>
+
 
 <div id="storyBox">
 
@@ -58,58 +87,58 @@ margin:10px;
 
 </div>
 
+
 <audio id="ding" src="Ding.mp3"></audio>
 <audio id="womp" src="Womp Womp.mp3"></audio>
 
+
 <script>
 
-let story = [
+const story =
 
-"Maiku-san was chilling at home...",
-"",
-"Then he got a notification.",
-"",
-"*ding*",
-"",
-"He saw that Mira-chan was eating egg for dinner.",
-"",
-"That made him realise...",
-"",
-"He ran out of eggs.",
-"",
-"So he must go on a mission to restock eggs.",
-"",
-"Will you help him?"
+`Maiku-san was chilling at home...
 
-]
+Then he got a notification.
 
-let i=0
-let textElement=document.getElementById("text")
-let ding=document.getElementById("ding")
+He saw that Mira-chan was eating egg for dinner.
 
-function typeStory(){
+That made him realise...
 
-if(i<story.length){
+He ran out of eggs.
 
-let line=story[i]
+So he must go on a mission to restock eggs.
 
-if(line=="*ding*"){
+Will you help him?`
 
-ding.play()
 
-textElement.innerHTML+="🔔<br><br>"
+let i = 0
 
-}else{
+let speed = 35
 
-textElement.innerHTML+=line+"<br><br>"
+let textElement = document.getElementById("text")
+
+let dingPlayed = false
+
+
+function typeWriter(){
+
+if(i < story.length){
+
+textElement.innerHTML += story.charAt(i)
+
+if(story.substring(i,i+12) == "notification."){
+
+document.getElementById("ding").play()
 
 }
 
 i++
 
-setTimeout(typeStory,800)
+setTimeout(typeWriter,speed)
 
-}else{
+}
+
+else{
 
 document.getElementById("choices").style.display="block"
 
@@ -117,15 +146,24 @@ document.getElementById("choices").style.display="block"
 
 }
 
-typeStory()
+
+document.getElementById("startBtn").onclick=function(){
+
+document.getElementById("startScreen").style.display="none"
+
+typeWriter()
+
+}
+
 
 document.getElementById("no").onclick=function(){
 
 document.getElementById("womp").play()
 
-textElement.innerHTML+="<br>Womp womp... Mission failed."
+textElement.innerHTML += "<br><br>Womp womp... Mission failed."
 
 }
+
 
 document.getElementById("yes").onclick=function(){
 
