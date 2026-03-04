@@ -1,111 +1,56 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-
-<title>Help Maiku Restock Eggs</title>
-
-<style>
-
-body{
-margin:0;
-height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
-background-image:url("MaikuAtHome.png");
-background-size:cover;
-background-position:center;
-font-family:Arial;
-color:white;
-}
-
-#storyBox{
-background:rgba(0,0,0,0.65);
-padding:30px;
-border-radius:20px;
-width:650px;
-text-align:center;
-font-size:22px;
-}
-
-#choices{
-margin-top:30px;
-display:none;
-}
-
-.choiceBtn{
-width:120px;
-cursor:pointer;
-margin:10px;
-transition:transform .1s;
-}
-
-.choiceBtn:hover{
-transform:scale(1.1);
-}
-
-#startScreen{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:black;
-display:flex;
-justify-content:center;
-align-items:center;
-z-index:10;
-}
-
-#startBtn{
-padding:18px 30px;
-font-size:22px;
-border-radius:15px;
-border:none;
-cursor:pointer;
-}
-
-</style>
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Help Maiku Restock Eggs</title>
+  <style>
+    html,body{height:100%;margin:0}
+    body{
+      display:flex;justify-content:center;align-items:center;
+      background:url("MaikuAtHome.png") center/cover no-repeat fixed;
+      font-family:Arial;color:white;
+    }
+    #storyBox{
+      width:min(720px,92vw);
+      background:rgba(0,0,0,0.65);
+      padding:30px;border-radius:20px;
+      text-align:center;font-size:22px;
+    }
+    #choices{margin-top:30px;display:none}
+    .choiceBtn{
+      width:120px;cursor:pointer;margin:10px;transition:transform .1s;
+    }
+    .choiceBtn:hover{transform:scale(1.08)}
+    #startScreen{
+      position:fixed;inset:0;background:black;
+      display:flex;justify-content:center;align-items:center;z-index:10;
+    }
+    #startBtn{
+      padding:18px 30px;font-size:22px;border-radius:15px;border:none;cursor:pointer;
+    }
+    .hint{opacity:.85;font-size:13px;margin-top:10px}
+  </style>
 </head>
 
-
 <body>
+  <div id="startScreen"><button id="startBtn">Start Mission</button></div>
 
+  <div id="storyBox">
+    <div id="text"></div>
+    <div id="choices">
+      <img src="Yes.png" id="yes" class="choiceBtn" alt="Yes">
+      <img src="No.png" id="no" class="choiceBtn" alt="No">
+    </div>
+    <div class="hint" id="hint"></div>
+  </div>
 
-<div id="startScreen">
+  <audio id="ding" src="Ding.mp3" preload="auto"></audio>
+  <audio id="womp" src="Womp%20Womp.mp3" preload="auto"></audio>
+  <audio id="letsgo" src="LetsGo.mp3" preload="auto"></audio>
 
-<button id="startBtn">Start Mission</button>
-
-</div>
-
-
-<div id="storyBox">
-
-<div id="text"></div>
-
-<div id="choices">
-
-<img src="Yes.png" id="yes" class="choiceBtn">
-<img src="No.png" id="no" class="choiceBtn">
-
-</div>
-
-</div>
-
-
-
-<audio id="ding" src="Ding.mp3"></audio>
-<audio id="womp" src="Womp Womp.mp3"></audio>
-<audio id="letsgo" src="LetsGo.mp3"></audio>
-
-
-<script>
-
-
-const story =
-
+  <script>
+    const story =
 `Maiku-san was chilling at home...
 
 Then he got a notification.
@@ -118,99 +63,61 @@ He ran out of eggs.
 
 So he must go on a mission to restock eggs.
 
-Will you help him?`
+Will you help him?`;
 
+    let i = 0;
+    const speed = 35;
+    const textElement = document.getElementById("text");
+    const ding = document.getElementById("ding");
+    const womp = document.getElementById("womp");
+    const letsgo = document.getElementById("letsgo");
+    const hint = document.getElementById("hint");
 
+    // Ding once after "notification." finishes typing
+    const trigger = "notification.";
+    const dingIndex = story.indexOf(trigger) + trigger.length - 1;
+    let dingPlayed = false;
 
-let i = 0
-let speed = 35
+    function typeWriter(){
+      if(i < story.length){
+        textElement.innerHTML += story.charAt(i);
 
-let textElement = document.getElementById("text")
+        if(!dingPlayed && i === dingIndex){
+          dingPlayed = true;
+          ding.currentTime = 0;
+          ding.play().catch(()=>{});
+        }
 
-let dingPlayed = false
+        i++;
+        setTimeout(typeWriter, speed);
+      } else {
+        document.getElementById("choices").style.display = "block";
+        hint.textContent = "Choose wisely…";
+      }
+    }
 
+    document.getElementById("startBtn").onclick = function(){
+      document.getElementById("startScreen").style.display="none";
+      typeWriter();
+    }
 
+    document.getElementById("no").onclick = function(){
+      womp.currentTime = 0;
+      womp.play().catch(()=>{});
+      hint.textContent = "Womp womp… mission failed 😭";
+    }
 
-function typeWriter(){
-
-if(i < story.length){
-
-textElement.innerHTML += story.charAt(i)
-
-
-
-// trigger ding when notification finishes typing
-
-if(!dingPlayed && story.substring(i-12,i+1) == "notification."){
-
-document.getElementById("ding").play()
-dingPlayed = true
-
-}
-
-
-
-i++
-
-setTimeout(typeWriter,speed)
-
-}
-
-else{
-
-document.getElementById("choices").style.display="block"
-
-}
-
-}
-
-
-
-// start mission button
-
-document.getElementById("startBtn").onclick=function(){
-
-document.getElementById("startScreen").style.display="none"
-
-typeWriter()
-
-}
-
-
-
-// NO button
-
-document.getElementById("no").onclick=function(){
-
-document.getElementById("womp").play()
-
-textElement.innerHTML += "<br><br>Womp womp... Mission failed."
-
-}
-
-
-
-// YES button
-
-document.getElementById("yes").onclick=function(){
-
-let sound=document.getElementById("letsgo")
-
-sound.play()
-
-setTimeout(function(){
-
-window.location.href="stage1.html"
-
-},1200)
-
-}
-
-
-
-</script>
-
-
+    document.getElementById("yes").onclick = function(){
+      hint.textContent = "Let’s gooooo…";
+      // Wait for full LetsGo.mp3 to finish
+      try{
+        letsgo.currentTime = 0;
+        letsgo.play().catch(()=>{});
+        letsgo.onended = () => window.location.href = "stage1.html";
+      } catch(e){
+        window.location.href = "stage1.html";
+      }
+    }
+  </script>
 </body>
-
 </html>
